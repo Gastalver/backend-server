@@ -1,91 +1,86 @@
-var Usuario = require('../modelos/usuario');
-var bcrypt = require('bcryptjs')
+var Hospital = require('../modelos/hospital');
 
-function getUsuario  (req,res,next) {
-
-    var desde = req.query.desde || 0
+function getHospital  (req,res,next) {
+    var desde = req.query.desde || 0;
     desde = Number(desde);
-    // TODO Ojo, que si envian un string rompen el código. Prevenir. En este y en los demás Get
 
-    Usuario
+    Hospital
         .find(
             // Criterios
             {
-
             },
         )
-        .select(
-            // Campos elegidos
-            'nombre email img role'
-        )
         .limit(
-            // Número de documentos por pagina
-            5
+            // Máximo de documentos a localizar
+            3
         )
         .skip(
+            // Saltar x docs: Ordinal por el que empezar la entrega de documentos
             desde
         )
+        .select(
+            // Selección de propiedades
+            'nombre img usuario'
+            )
+        .populate(
+            // Propiedades a completar
+            [
+                {
+                    path: 'usuario',
+                    select: 'nombre email'
+                }
+            ]
+        )
         .exec(
+            {},
             // Callback
-            (error, usuarios) => {
+            (error, hospitales) => {
                 if (error) {
                     return res.status(500).json(
                         {
                             ok: false,
-                            mensaje: 'Error al buscar usuarios en la BD',
+                            mensaje: 'Error al buscar hospitales en la BD',
                             error: error
                         }
                     );
                 }
-                Usuario.countDocuments(
-                    // Criterios de selección de documentos a contar, en este caso todos
-                    {
-
-                    },
+                Hospital.count(
+                    // Criterios de selección de docs a contar
+                    {},
                     // Callback
                     (err,total) => {
-
-                        if (err) {
-                            return res.status(500).json(
-                                {
-                                    ok: false,
-                                    mensaje: 'Extraño error al contar usuarios',
-                                    errors: err
-                                }
-                            )
-                        }
 
                         return res.status(200).json(
                             {
                                 ok: true,
-                                usuarios: usuarios,
+                                hospitales: hospitales,
                                 total: total
                             }
                         )
-                    });
+                    })
             }
         );
 }
 
-function postUsuario (req,res) {
+function postHospital (req,res) {
     let body = req.body;
-    let nuevoUsuario = new Usuario({
+    // Tomamos el id de usuario de req, donde lo añadió el middleware autenticador.
+    // No hace falta que lo indique el cliente en el body de su request.
+    let nuevoHospital = new Hospital({
             nombre: body.nombre,
-            email: body.email,
-            password: bcrypt.hashSync(body.password,10),
             img: body.img,
-            role: body.role
+            usuario: req.usuario._id
         }
     );
-    nuevoUsuario.save(
-        (error,usuarioGuardado) => {
+    nuevoHospital.save(
+        (error,hospitalGuardado) => {
             if (error) {
                 // Devolvemos 400 porque se supone que los únicos errores serán del cliente,
                 // por hacer un bad request
                 return res.status(400).json(
                     {
                         ok: false,
-                        mensaje: 'Error al crear usuario en la BD',
+                        mensaje: 'Error al crear hospital en la BD',
                         error: error
                     }
                 )
@@ -93,65 +88,64 @@ function postUsuario (req,res) {
             return res.status(201).json(
                 {
                     ok: true,
-                    usuario: usuarioGuardado
+                    hospital: hospitalGuardado
                 }
             )
         });
 }
 
-function putUsuario (req,res) {
+function putHospital (req,res) {
     let id = req.params.id;
     let body = req.body;
 
-    Usuario.findById(
+    Hospital.findById(
         id,
         // Callback
-        (error, usuario) => {
+        (error, hospital) => {
             if (error) {
                 // Devolvemos 500 porque un findById nunca debería dar error
                 return res.status(500).json(
                     {
                         ok: false,
-                        mensaje: 'Error al buscar usuario en la BD',
+                        mensaje: 'Error al buscar hospital en la BD',
                         error: error
                     }
                 )
             }
             // Si hace la búsqueda correctamente pero no encuentra el id
-            if (!usuario) {
+            if (!hospital) {
                 return res.status(400).json(
                     {
                         ok: false,
-                        mensaje: 'No existe usuario con el ID ' + id + ' en la BD',
+                        mensaje: 'No existe hospital con el ID ' + id + ' en la BD',
                         error: error
                     }
                 );
             }
-            // Cambiamos directamente las propiedades del usuario recibido de la búsqueda
-            usuario.nombre = body.nombre;
-            usuario.email = body.email;
-            usuario.role = body.role
+            // Cambiamos directamente las propiedades del hospital recibido de la búsqueda
+            hospital.nombre = body.nombre;
+            // La imagen la gestionamos de otra manera
+            // hospital.img = body.img;
+            hospital.usuario = req.usuario._id;
 
-            // Guardamos el usuario ya editado
-            usuario.save(
+            // Guardamos el hospital ya editado
+            hospital.save(
                 // Callback
-                (err,usuarioGuardado) =>{
+                (err,hospitalGuardado) =>{
                     if (err) {
                         // Devolvemos 500
                         return res.status(500).json(
                             {
                                 ok: false,
-                                mensaje: 'Error al actualizar usuario en la BD',
+                                mensaje: 'Error al actualizar hospital en la BD',
                                 error: err
                             }
                         )
                     }
-                    // Cambiamos el password por una carita para no desvelarlo.
-                    usuarioGuardado.password = ':)';
                     return res.status(200).json(
                         {
                             ok: true,
-                            usuario: usuarioGuardado
+                            hospital: hospitalGuardado
                         }
                     )
                 }
@@ -160,31 +154,31 @@ function putUsuario (req,res) {
     );
 }
 
-function deleteUsuario (req,res) {
+function deleteHospital (req,res) {
     let id = req.params.id;
 
-    Usuario.findByIdAndRemove(
+    Hospital.findByIdAndRemove(
         id,
         // Callback
-        (error, usuarioBorrado) => {
+        (error, hospitalBorrado) => {
             if (error) {
                 // Devolvemos 500 porque un findByIdAndDelete nunca debería dar error
                 return res.status(500).json(
                     {
                         ok: false,
-                        mensaje: 'Error al borrar usuario en la BD',
+                        mensaje: 'Error al borrar hospital en la BD',
                         error: error
                     }
                 )
             }
             // Si hace la búsqueda correctamente pero no encuentra el id
-            if (!usuarioBorrado) {
+            if (!hospitalBorrado) {
                 return res.status(400).json(
                     {
                         ok: false,
-                        mensaje: 'No existe usuario con el ID ' + id + ' en la BD',
+                        mensaje: 'No existe hospital con el ID ' + id + ' en la BD',
                         errors: {
-                            message: 'No existe usuario con el ID indicado'
+                            message: 'No existe hospital con el ID indicado'
                         }
                     }
                 );
@@ -192,7 +186,7 @@ function deleteUsuario (req,res) {
             return res.status(200).json(
                 {
                     ok: true,
-                    usuario: usuarioBorrado
+                    hospital: hospitalBorrado
                 }
             )
         }
@@ -200,8 +194,8 @@ function deleteUsuario (req,res) {
 }
 
 module.exports = {
-    getUsuario,
-    postUsuario,
-    putUsuario,
-    deleteUsuario
+    getHospital,
+    postHospital,
+    putHospital,
+    deleteHospital
 }
