@@ -16,4 +16,6 @@ var bcrypt = require('bcryptjs');
  */
 routerLogin.post('/', controladorLogin.postLogin);
 
+routerLogin.post('/google', controladorLogin.logInGoogle);
+
 module.exports = routerLogin;
