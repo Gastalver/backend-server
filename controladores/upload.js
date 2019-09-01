@@ -35,8 +35,8 @@ function putUpload (req, res) {
         return res.status(400).json(
             {
                 ok: false,
-                mensaje: 'Busqueda no permitida en la coleccion indicada.',
-                errors: {message: 'Busqueda no permitida en la coleccion indicada'}
+                mensaje: 'Upload no permitido en la coleccion indicada.',
+                errors: {message: 'Upload no permitido en la coleccion indicada'}
             }
         )
     }

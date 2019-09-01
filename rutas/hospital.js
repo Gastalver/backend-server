@@ -5,6 +5,8 @@ var autenticacion = require('../middleware/autenticacion');
 
 // Rutas relativas a hospitales
 
+routerHospital.get('/:id', controladorHospital.getHospitalPorId);
+
 /**
  * @description Devuelve nombre, img y usuarios de todos los hospitales
  * @type {app}

@@ -1,6 +1,6 @@
 // Dependencias
-var bcrypt = require('bcryptjs');
-var jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const {OAuth2Client} = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_WEBCLIENT_ID);
 
@@ -8,14 +8,14 @@ const client = new OAuth2Client(process.env.GOOGLE_WEBCLIENT_ID);
 const SEED = process.env.JWTSEED;
 
 // Modelos
-var Usuario = require ('../modelos/usuario');
+const Usuario = require('../modelos/usuario');
 
 /**
  * Autenticación normal.
  * @param req
  * @param res
  */
-function postLogin (req,res) {
+function logIn (req,res) {
 
     let body = req.body;
     // Buscamos usuario con email suministrado
@@ -70,6 +70,8 @@ function postLogin (req,res) {
                 }
                 // Callback. De momento nada. Serviría para gestionar errores.
                 );
+            // Devolvemos el usuario, el id, y el token, que deberá añadir el cliente en el body
+            // de cada request que requiera autenticación y que controladará el middleware.
             return res.status(200).json(
                 {
                     ok: true,
@@ -88,9 +90,10 @@ function postLogin (req,res) {
  * @param res
  */
 async function logInGoogle (req,res) {
-    // Recibimos Token de Google., que el usuario debe enviar en el body
-    var token = req.body.token
-    var googleUser = await verify(token).catch((error)=>{
+    // Previamente la app cliente debe haber obtenido un token de Google. (Cfr. adminpro login.component.ts)
+    // Recibimos Token de Google., que el cliente  debe enviar en el body
+    const token = req.body.token;
+    const googleUser = await verify(token).catch((error) => {
         return res.status(500).json(
             {
                 ok: false,
@@ -99,8 +102,17 @@ async function logInGoogle (req,res) {
             }
         );
     });
-    // Recuérdese que la función verify, además de verificar el token,
-    // añade el valor true a la propiedad google.
+    // Recuérdese que la función verify, devuelve el siguiente objeto:
+    //  {
+    //     nombre: payload.name,
+    //     email: payload.email,
+    //     img: payload.picture,
+    //     google: true
+    // }
+    //
+    // Siendo el valor de google true sólo si es un Google login qye se ha varificado correctamente.
+
+    // Veruficado el usuario, tenemos los datos en googleUser. Lo buscamos en la base de datos por su email.
     Usuario.findOne(
         // Criterios
         {
@@ -154,7 +166,7 @@ async function logInGoogle (req,res) {
                 // Si no se ha encontrado usuario con el email indicado por googleUser, lo creamos.
                 // En el futuro no necesitará indicar clave, pero deberá validarse por /loginGoogle
                 // no por el login normal con usuario y clave.
-                var usuario = new Usuario();
+                const usuario = new Usuario();
                 usuario.nombre = googleUser.nombre;
                 usuario.email = googleUser.email;
                 usuario.img = googleUser.img;
@@ -171,7 +183,7 @@ async function logInGoogle (req,res) {
                                 }
                             );
                         }
-
+                        // Si se ha guardado correctamente
                         let token = jwt.sign(
                             // PayLoad: Lo que contendrá el token
                             {usuario: usuarioBD},
@@ -199,6 +211,11 @@ async function logInGoogle (req,res) {
 
 }
 
+/**
+ * Verifica token Google. Basado en documentación API Google.
+ * @param token
+ * @returns {Promise<{img: *, google: boolean, nombre: *, email: *}>}
+ */
 async function verify(token) {
     const ticket = await client.verifyIdToken({
         idToken: token,
@@ -220,6 +237,6 @@ async function verify(token) {
 
 
 module.exports = {
-    postLogin,
+    logIn,
     logInGoogle
-}
+};

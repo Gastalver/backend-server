@@ -1,5 +1,11 @@
 var Hospital = require('../modelos/hospital');
 
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 function getHospital  (req,res,next) {
     var desde = req.query.desde || 0;
     desde = Number(desde);
@@ -12,7 +18,7 @@ function getHospital  (req,res,next) {
         )
         .limit(
             // Máximo de documentos a localizar
-            3
+            5
         )
         .skip(
             // Saltar x docs: Ordinal por el que empezar la entrega de documentos
@@ -64,6 +70,7 @@ function getHospital  (req,res,next) {
 
 function postHospital (req,res) {
     let body = req.body;
+    console.log('Recibido post/hospital con el body ' + body)
     // Tomamos el id de usuario de req, donde lo añadió el middleware autenticador.
     // No hace falta que lo indique el cliente en el body de su request.
     let nuevoHospital = new Hospital({
@@ -193,8 +200,40 @@ function deleteHospital (req,res) {
     );
 }
 
+function getHospitalPorId (req,res) {
+    var id = req.params.id;
+
+    Hospital.findById(id)
+        .populate('usuario', 'nombre img email')
+        .exec(
+            (err,hospital) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'Error al buscar hospital',
+                        errors: err
+                    });
+                }
+                if (!hospital) {
+                    return res.status(400).json({
+                        ok: false,
+                        mensaje: 'El hospital con el id ' + id + ' no existe.',
+                        errors: {
+                            message: 'No existe un hospital con ese ID'
+                        }
+                    })
+                }
+                res.status(200).json({
+                    ok: true,
+                    hospital:hospital
+                })
+            }
+        )
+}
+
 module.exports = {
     getHospital,
+    getHospitalPorId,
     postHospital,
     putHospital,
     deleteHospital

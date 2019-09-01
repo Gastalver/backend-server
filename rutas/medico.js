@@ -6,12 +6,21 @@ var autenticacion = require('../middleware/autenticacion');
 // Rutas relativas a medicos
 
 /**
- * @description Devuelve nombre, img, usuario y hospital de todos los medicoes
+ * @description Devuelve medico con id determinado
+ * @param req
+ * @param res
+ * @returns JSON { mensaje, medico }
+ */
+routerMedico.get('/:id', controladorMedico.getMedicoPorId);
+
+/**
+ * @description Devuelve nombre, img, usuario y hospital de todos los medicos
  * @param req
  * @param res
  * @returns JSON { mensaje, medicos }
  */
 routerMedico.get('/', controladorMedico.getMedico);
+
 
 /**
  * @description Crear un nuevo medico.

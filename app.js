@@ -4,9 +4,24 @@ var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var fileUpload = require('express-fileupload');
+// Para una gestión más profesional de CORS, usar:
+var cors = require('cors');
 
 // Inicializar variables
 var app = express();
+
+app.options('*', cors())
+app.use(cors());
+// CORS CABECERAS DE CONTROL DE ACCESO. (Sólo con utilidades de express - res)
+// app.use((req, res, next) => {
+//     res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+//     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+//     res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
+//
+//     next();
+// });
+
 
 // Importar rutas
 var rutasRaiz = require('./rutas/raiz');

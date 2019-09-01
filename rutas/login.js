@@ -14,8 +14,10 @@ var bcrypt = require('bcryptjs');
  * @response {string} response.mensaje Mensaje informativo
  * @auth No requiere autenticación
  */
-routerLogin.post('/', controladorLogin.postLogin);
+routerLogin.post('/', controladorLogin.logIn);
 
 routerLogin.post('/google', controladorLogin.logInGoogle);
 
 module.exports = routerLogin;
+
+

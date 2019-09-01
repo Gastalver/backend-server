@@ -8,7 +8,7 @@ var autenticacion = require('../middleware/autenticacion');
 // Rutas relativas a usuarios
 
 /**
- * @description Devuelve nombre, email, img y role de todos los usuarios
+ * @description Devuelve nombre, email, img, role y propiedad Google de todos los usuarios
  * @type {app}
  * @param req
  * @param res
@@ -24,7 +24,7 @@ routerUsuario.get('/', controladorUsuario.getUsuario);
  * @requires JSON { nombre, email, img, role }
  * @returns JSON { mensaje, usuario }
  */
-routerUsuario.post('/', autenticacion.verificaToken, controladorUsuario.postUsuario);
+routerUsuario.post('/', controladorUsuario.postUsuario);
 
 /**
  * @description Actualizar un usuario.

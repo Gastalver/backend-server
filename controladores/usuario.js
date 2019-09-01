@@ -16,7 +16,7 @@ function getUsuario  (req,res,next) {
         )
         .select(
             // Campos elegidos
-            'nombre email img role'
+            'nombre email img role google'
         )
         .limit(
             // Número de documentos por pagina

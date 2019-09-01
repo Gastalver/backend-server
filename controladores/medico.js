@@ -16,7 +16,7 @@ function getMedico  (req,res,next) {
         )
         .limit(
             // Máximo de documentos a localizar
-            3
+            5
         )
         .skip(
             // Saltar x docs: Ordinal por el que empezar la entrega de documentos
@@ -57,6 +57,38 @@ function getMedico  (req,res,next) {
                 })
             }
         );
+}
+
+function getMedicoPorId (req,res) {
+    var id = req.params.id;
+
+    Medico.findById(id)
+        .populate('usuario', 'nombre img email')
+        .populate('hospital')
+        .exec(
+            (err,medico) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'Error al buscar medico',
+                        errors: err
+                    });
+                }
+                if (!medico) {
+                    return res.status(400).json({
+                        ok: false,
+                        mensaje: 'El médico con el id ' + id + ' no existe.',
+                        errors: {
+                            message: 'No existe un médico con ese ID'
+                        }
+                    })
+                }
+                res.status(200).json({
+                    ok: true,
+                    medico:medico
+                })
+            }
+        )
 }
 
 function postMedico (req,res) {
@@ -191,6 +223,7 @@ function deleteMedico (req,res) {
 
 module.exports = {
     getMedico,
+    getMedicoPorId,
     postMedico,
     putMedico,
     deleteMedico
