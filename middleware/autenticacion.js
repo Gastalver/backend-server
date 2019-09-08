@@ -30,7 +30,7 @@ function verificaToken(req,res,next) {
                     ok: false,
                     mensaje: 'Token incorrecto',
                     errors: error
-                })
+                });
             }
             // Comprobamos si el token ha expirado o no.
             // TODO COmprobar expiración
@@ -41,12 +41,60 @@ function verificaToken(req,res,next) {
 
             req.usuario = decodificado.usuario;
 
-            //Culminado el middleware damos paso a lo siguiente.
+            //Culminado el middleware damos paso a lo siguiente, que es el middleware de
+            // verificación del role
             next();
         }
     )
 }
 
+function vertificaRoleAdministrador(req,res, next) {
+    var usuario = req.usuario;
+    // En el archivo de rutas hay que indicar en cuáles se utiliza.
+
+    if (req.usuario.role === 'ADMIN_ROLE') {
+        next();
+        return;
+    } else {
+        return res.status(401).json({
+            ok: false,
+            mensaje: 'Token incorrecto - No es administrador',
+            errors: {
+                message: 'No es administrador'
+            }
+        })
+    }
+}
+
+/**
+ * Autorización especial para que cada usuario pueda actualizarse a sí mismo,
+ * aunque no tenga el role de administrador. Para ser usado únicamente en la
+ * ruta put /usuario:id
+ * @param req
+ * @param res
+ * @param next
+ * @returns {*|void|Promise<any>}
+ */
+function vertificaRoleAdmin_o_MismoUsuario(req,res, next) {
+    var usuario = req.usuario;
+    var id = req.params.id;
+    if (usuario.role === 'ADMIN_ROLE' || usuario._id === id) {
+        next();
+        return;
+    } else {
+        return res.status(401).json({
+            ok: false,
+            mensaje: 'Token incorrecto - No ES ADMIN ni el propio usuario',
+            errors: {
+                message: 'No es administrador'
+            }
+        })
+    }
+}
+
+
 module.exports = {
-    verificaToken
+    verificaToken,
+    vertificaRoleAdministrador,
+    vertificaRoleAdmin_o_MismoUsuario
 };

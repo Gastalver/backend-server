@@ -3,6 +3,7 @@ var express=require('express');
 var controladorLogin = require('../controladores/login');
 var routerLogin = express.Router();
 var bcrypt = require('bcryptjs');
+var autenticacion = require('../middleware/autenticacion');
 
 
 /**
@@ -17,6 +18,8 @@ var bcrypt = require('bcryptjs');
 routerLogin.post('/', controladorLogin.logIn);
 
 routerLogin.post('/google', controladorLogin.logInGoogle);
+
+routerLogin.get('/renuevatoken', autenticacion.verificaToken, controladorLogin.renuevaToken)
 
 module.exports = routerLogin;
 

@@ -77,7 +77,8 @@ function logIn (req,res) {
                     ok: true,
                     usuario: usuarioBD,
                     id: usuarioBD._id,
-                    token: token
+                    token: token,
+                    menu: obtenerMenu(usuarioBD.role)
                 }
             );
     }
@@ -158,7 +159,8 @@ async function logInGoogle (req,res) {
                             ok: true,
                             usuario: usuarioBD,
                             token: token,
-                            id: usuarioBD._id
+                            id: usuarioBD._id,
+                            menu: obtenerMenu(usuarioBD.role)
                         }
                     );
                 }
@@ -200,7 +202,8 @@ async function logInGoogle (req,res) {
                                 ok: true,
                                 usuario: usuarioBD,
                                 token: token,
-                                id: usuarioBD._id
+                                id: usuarioBD._id,
+                                menu: obtenerMenu(usuarioBD.role)
                             }
                         );
                     }
@@ -235,8 +238,62 @@ async function verify(token) {
     }
 }
 
+function obtenerMenu(ROLE) {
+    const menu = [
+        {
+            titulo: 'Principal',
+            icono: 'mdi mdi-gauge',
+            submenu: [
+                { titulo: 'Dashboard', url: '/dashboard'},
+                { titulo: 'ProgressBar', url: '/progress'},
+                { titulo: 'Graficas', url: '/graficas1'},
+                { titulo: 'Promesas', url: '/promesas'},
+                { titulo: 'Rxjs', url: '/rxjs'},
+            ]
+        },
+        {
+            titulo: 'Mantenimiento',
+            icono: 'mdi mdi-folder-lock-open',
+            submenu: [
+                // { titulo: 'Usuarios', url: '/usuarios'},
+                { titulo: 'Médicos', url: '/medicos'},
+                { titulo: 'Hospitales', url: '/hospitales'}
+            ]
+        }
+    ];
+    // La manera más fácil de distinguir un menú de usuario normal y otro de administrador.
+    // Si es administrador se incluye un apartado en el array por medio del método unshift,
+    // que lo coloca en primer lugar. (push lo coloca al final).
+    if (ROLE == 'ADMIN_ROLE') {
+        menu[1].submenu.unshift({titulo: 'Usuarios', url: '/usuarios' })
+    }
+    return menu;
+}
+
+    function renuevaToken(req, res) {
+        // Como esta ruta exige estár autenticado, ya tenemos al usuario en req.usuario
+        // lo unico que haremos será generar un nuevo token.
+        let token = jwt.sign(
+            // PayLoad: Lo que contendrá el token
+            {usuario: req.usuario},
+            // Seed. Palabreja para encriptar. La hemos importado de configuracion.SEED más arriba.
+            SEED,
+            // Opciones del token. Esencial la fecha de expiración, para mayor seguridad.
+            {
+                expiresIn: 14400
+            }
+            // Callback. De momento nada. Serviría para gestionar errores.
+        );
+        return res.status(200).json(
+            {
+                ok: true,
+                token: token,
+            }
+        );
+    }
 
 module.exports = {
     logIn,
-    logInGoogle
+    logInGoogle,
+    renuevaToken
 };

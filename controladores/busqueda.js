@@ -172,7 +172,7 @@ function buscarUsuarios( voz, regExp) {
             )
             .select(
                 // Seleccionamos los campos que queremos. No queremos password
-                'nombre email role'
+                'nombre email img role'
             )
             .or(
                 // Operador para buscar por varios criterios en varios campos a la vez.

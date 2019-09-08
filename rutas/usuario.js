@@ -34,7 +34,7 @@ routerUsuario.post('/', controladorUsuario.postUsuario);
  * @requires JSON { nombre, email, img, role }
  * @returns JSON { mensaje, usuario }
  */
-routerUsuario.put('/:id', autenticacion.verificaToken, controladorUsuario.putUsuario);
+routerUsuario.put('/:id', [autenticacion.verificaToken, autenticacion.vertificaRoleAdmin_o_MismoUsuario], controladorUsuario.putUsuario);
 
 /**
  * @description Borrar un usuario.
@@ -42,6 +42,6 @@ routerUsuario.put('/:id', autenticacion.verificaToken, controladorUsuario.putUsu
  * @param req
  * @param res
  */
-routerUsuario.delete('/:id', autenticacion.verificaToken, controladorUsuario.deleteUsuario);
+routerUsuario.delete('/:id',  [autenticacion.verificaToken, autenticacion.vertificaRoleAdministrador], controladorUsuario.deleteUsuario);
 
 module.exports = routerUsuario;
